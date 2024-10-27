@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adam Schilperoort</title>
+    <link rel="stylesheet" href="nc_assets/css/style.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+<style>
+
+body {
+  background: #000;
+}
+
+</style>
+<body>
+  <nav class="navbar navbar-inverse navbar-fixed-top hidden">
+    <div class="container-fluid">
+      <ul class="nav navbar-nav">
+          <li><a href="#home"></a></li>
+          <li><a href="#about"></a></li>
+          <li><a href="#projects"></a></li>
+          <li><a href="#photography"></a></li>
+      </ul>
+    </div>
+</nav>
+  <div id="canvas-container">
+      <canvas id="myCanvas"></canvas>
+  </div>
+        <div id="text-overlay">
+          <ul class="header-list">
+            <li class="about"><button onclick="navigateTo('about')">About</button></li>
+            <li class="projects"><button onclick="navigateTo('projects')">Projects</button></li>
+            <!-- <li class="photography"><button onclick="navigateTo('photography')">Photos</button></li> -->
+            <li class="minimize"><button onclick="navigateTo('home')">-</button></li>
+        </ul>
+        <br>
+        <div id="text-content">
+        <div id="home-section" style="display: none;"></div>
+        <div id="about-section" style="display: none;">
+          <h1>Welcome!</h1>
+          <!-- <div>
+            <img src="photos/ProfilePic.png" class="wrap" alt="profilePic" width="15%" height="15%"  />
+          </div> -->
+          <div>
+            <p>
+            I'm Adam Schilperoort, a 30-year-old software engineer currently living in the Tucson area. 
+            This website is mainly for my entertainment and to have an online portfolio 
+            for posting some of the fun things I've worked on (...those that aren't covered by an NDA of course). 
+            My career has taken me on a tour through robotics, astronomy, rocket science, and industrial flow 
+            automation, but who knows where I could end up next! C/C++ is my language of choice, and I get 
+            particularly excited whenever I get to work on any real-time data processing application, 
+            especially one on an embedded Linux kernel! Speed is everything!!!
+            </p>
+            <h1>Interests & Hobbies</h1>
+            <p>
+            Lately I seem to be a sporty/outdoorsy combo with some creative projects on the side- my list of activities range
+            from hiking, camping, mountain biking, road cycling (here's the <a href="https://www.strava.com/athletes/8175266">Strava</a>), 
+            triathlon, climbing (only indoors so far), downhill skiing, home coffee roasting & brewing (and drinking), 3D printing, painting, 
+            astrophotography, jazz trombone, (bad) music production, and raising my indoor plants.  I like to race the Tour de Tucson every year, 
+            travel in the winter for ski trips, and do an occasional long vacation in a foreign country. I've been to 5 of the 7 continents, but only 11 countries! 
+            My home gym is a work in progress, and I have a long list of DIY projects (landscaping, improvements around my pool, workshop, etc) 
+            I hope to complete when I get some free time. 
+            </p>
+            <p>
+            Recently I've been reading a few philosophy books.  My day typically starts with the Daily Stoic 
+            (Ryan Holiday) and I'll dig into Sarte and Camus whenever possible to challenge myself. My book collection is always expanding, 
+            though I have to admit I'm unable to keep up! 
+            </p>
+            <h1>Career Highlights</h1>
+            <p>
+            My professional trajectory began at an internship at <a href="https://lowell.edu/">Lowell Observatory</a> in Flagstaff, Az
+            (specifically the Navy Precision Optical Interferometer instrument on Anderson Mesa)
+            where I was introduced to the concept of <a href="https://en.wikipedia.org/wiki/Adaptive_optics">Adaptive Optics</a>
+            and worked on programming a full closed-loop system for several 1-meter telescopes. 
+            Although I had previous experience with motor controllers and collecting data from sensors from my 
+            time at the NAU robotics team and rocket club, dealing with real-time image processing, deformable mirrors, fast steering mirrors, 
+            and other motorized optical components was a different (and way more precise) beast. As an ECE who switched into a CS and Math dual major 
+            I had some physics, however optics is on a whole other level of complexity, and it did take me a while to make it over the initial learning 
+            curve!
+            </p>
+            <p>
+            After Lowell, I moved down to Tucson to work for <a href="https://hartsci.com/">Hart Scientific</a>, a company specializing in
+            the commercialization, standardization, and manufacture of adaptive optics systems 
+            run by <a href="https://profiles.arizona.edu/person/michae10">Dr. Michael Hart</a>, a former professor of Optical Sciences at the University of Arizona. 
+            The focus on making laser communication work (ground-to-space) on a global scale was one of the primary reasons
+            why I was so excited to work there. While there, I worked with a roster of amazing scientists and engineers
+            and had the opportunity to participate in the whole life-cycle of developing a product- from 
+            initial engineering to seeing it go live on-sky! At HartSCI I gained a firmer grasp on software architecture,
+            getting a full-stack experience from rewriting low-level controls software to optimizing the web-server and plots on the interface.  
+            </p>
+            <p>
+            <a href="https://www.dearmansystems.com/">Dearman Systems</a>, an industrial flow automation company earned my attention 
+            due to aligning with some of my career goals and offering me a fresh challenge, so I switched industries.  There I learned all about bulk liquid & gas storage
+            and was the principle software engineer deploying the backend code of our database-driven solution for oil terminals around the world. I 
+            became the 'devops' engineer as well as we transitioned into a new version of code released at the end of 2024.
+            </p>
+            <p>
+            My passion in optics and astronomy eventually called me back, and I accepted a position at the University of Arizona's
+            Steward Observatory <a href="https://www.as.arizona.edu/center-astronomical-adaptive-optics-caao">Center for Astronomical Adaptive Optics</a>,
+            where I currently work! The current project is an exoplanet research telescope getting launched into space! My current responsibilities include writing apps 
+            for communicating with hardware and running data processing loops in the lab so we can better understand performance of our science techniques.
+            </p>
+          </div>
+        </div>
+        <div id="projects-section" style="display: none; max-height:100%">
+          <h1>Model Rockets</h1>
+          <p>While an undergraduate CS student at NAU, I joined a NASA-sponsored rocket team (Space Jacks)
+            which happened to have some overlap with the ASME robotics group I worked with the year before. 
+            We designed and built a rocket from scratch, and even though I was in charge of electronics and 
+            software, I also helped hand-lay carbon fiber sheets around our mold with proper application of 
+            epoxy resin and silica to build our main body tube. I designed, soldered up, and programmed 
+            a data-collection module inside our payload bay using an Arduino Uno, altimeter, accelerometer, barometric sensor, 
+            SD card, 9-volt-battery, and some wire. We had a second module which independently measured 
+            altitude and would detonate charges to blow its nose cone off and deploy a parachute 
+            upon return. The fun part was after we were done, I got to play with the accelerometer data normalized 
+            against our altimiter data to build out a projection of our flight path!
+            This was an experience with some talented individuals and faculty sponsors like Carson Pete! 
+            I'm so excited the team keeps on 
+            <a href="https://spacegrant.arizona.edu/about/success/nau/nau-space-jacks-team-takes-1st-place-overall-first-nations-launch-competition">succeeding</a>!
+          </p>
+          <h1>Interferometry at Lowell Observatory</h1>
+          <p>The site I worked at was the <a href="https://en.wikipedia.org/wiki/Navy_Precision_Optical_Interferometer">Navy Precision Optical Interferometer</a>, in Flagstaff,
+            a joint project between NOFS, NRL, and Lowell to perform high angular resolution astrometry. The site had been designed and built in the late 1900s 
+            and had a long history of engineering upgrades to achieve new science objectives.
+            While I was there, <a href="https://en.wikipedia.org/wiki/Gerard_van_Belle">Dr. Gerard van Belle</a> led a project to upgrade the interferometer 
+            to use 3 1-meter aperture telescopes on mobile platforms which would utilize the entire array. As the longest-baseline optical interferometer in the world, upgrading 
+            from 6-inch flat siderostats to 1-meter apertures would significantly broaden its science ability, unlocking the ability to resolve darker objects. 
+            1-meter apertures required the application of adaptive optics to correct for the effect atmospheric turbulence, so that's where I came in! Our setup 
+            used a traditional shack-hartmann wavefront sensor to measure gradients of phase error across sections of the aperture, then applied corrections 
+            to a deformable mirror to flatten the wavefront, correcting the accumulated discrete phase error. The software interfaced with the hardware (Photometrics CCD camera, 
+            OKO Deformable Mirror, and custom Fast Steering Mirror) and built in the necessary calibration and data-processing loops. 
+            <a href="https://astrobites.org/2022/11/20/guide-to-adaptive-optics/">Great article on AO here</a></p>
+          <h1>Adaptive Optics at Hart Scientific</h1>
+          <p>The goal at Lowell had been to make the interferometer work by using a specific use-case of AO, but at HartSCI, the goal was to use AO to build a commercial product  
+            that would be widely applicable for observatories around the globe. There our focus was to develop an incredibly cohesive and maintainable codebase with the fastest 
+            possible correction loop and a great interface which any astronomer could easily use. To make the interface truly 'easy' we had to develop a significant layer of 
+            automation which required performing all sorts of extra data processing and state logic to trigger activities when certain criteria were met. This was 
+            a fairly lofty task considering no other AO system on the planet has such sophisticated automation, typically having a human in the loop instead who is looking 
+            at live camera images to decide when to adjust optical components, perform calibrations, adjust telescope tracking, or restart the AO system depending on tracking data.
+            There's so many different conditions to consider and such a fairly complicated decision tree to build that only the most hardcore attempt it!
+          </p>
+          <h1>Terminal Automation at Dearman Systems</h1>
+          <p>During my time as a software engineer at Dearman Systems, I was exposed to the bulk liquid storage industry and all the different hardware and software protocols that 
+            have become standard in that field. The low-level software I maintained orchestrated a load sequence from when a driver arrives at a terminal to when they leave with
+            BOL in-hand and product in the barge/tank/truck/trailer/railcar.  Pieces of sofware within that automation system would touch all kinds of terminal hardware from DEUs, RFID sensors,
+            access gates, flow meters, valves, temperature sensors, pressure gauges, tank levels, weigh scales, PLCs, and flow controllers such as Multiloads, Acculoads, Microloads, 
+            Danloads, LCRIQs, etc.. Every piece of data associated with loading was authenticated and connected to a database which allowed for multi-terminal data unification 
+            and automating terminal inventory management as a whole.  I worked directly with customers like Colonial, IMTT, NGL, and AmeriGas to implement custom features in the code 
+            to modify their load sequence in some way, collect data from new sensors, or add some feature in the automation process.  I took a partial role as a devops engineer 
+            designing the new version of software (V5) which will allow the business to scale and secure hundreds of new customers around the planet!          
+          <h1>Astronomy at Steward Observatory</h1>
+          <p>At Steward Observatory's Center for Astronomical Adaptive Optics at the University of Arizona, I work for <a href="https://www.ewandouglas.space/">Dr. Ewan Douglas</a> 
+            and a team of scientists and engineers
+            on multiple space telescopes and instruments designed for exoplanet research. My work involes implementing apps within the open-source frameworks CACAO and MagAO-X to 
+            interface with hardware, perform data processing/analysis, and implement automation in the Adaptive Optics.  A few techniques of interest involve using wavefront sensors 
+            for phase retrieval of the primary mirror so we can correct surface deformations the mirror undergoes under thermal drift, and using images from a lyot-stop rejection to 
+            detect low-order phase and correct for optical path aberrations. 
+          </p>
+        </div>
+        <div id="photography-section" style="display: none;">
+          <h1>Photography Title</h1>
+          <p>This is the photography section text.</p>
+        </div>
+        <div id="sports-section" style="display: none;">
+          <br>
+          <h1>Sports Title</h1>
+          <p>This is the sports section text.</p>
+        </div>
+        </div>
+        </div>
+  </div>
+  <script src="script.js"></script>
+</body>
