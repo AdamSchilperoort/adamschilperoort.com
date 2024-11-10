@@ -25,6 +25,7 @@ class Node {
         this.radius = 2;
         this.speedX = (Math.random() * 2 - 1) / 8;  
         this.speedY = (Math.random() * 2 - 1) / 8;
+        this.mass = (Math.random() + 1 ) * 10;
         this.clickedInProximity = false;
         this.clickTime = 0; // Timestamp when clicked
         this.accelerationX = 0;
@@ -49,34 +50,13 @@ class Node {
         const distance = Math.sqrt(dx * dx + dy * dy);
 
         // maybe scale this quadratically or real gravity
-       if(distance < 250 && distance > 25) {
-            //this.speedX += 1 / ( ( dx * dx ) );
-            //this.speexY += 1 / ( ( dy * dy ) );
+       if(distance < 250 ) {
             if(!blackHoleMode){
                 if (dx != 0) {
                     this.speedX += (dx / (distance * distance)) / 15;
                 }
                 if (dy != 0) {  
                     this.speedY += (dy / (distance * distance)) / 15;
-                }
-            } else {
-                if (dx != 0) {
-                    this.speedX += (dx / (distance * distance)) / 2;
-                }
-                if (dy != 0) {  
-                    this.speedY += (dy / (distance * distance)) / 2;
-                }
-            }
-       }
-       if( distance <= 25)
-       { 
-            // dampen to converge to 0
-            if(!blackHoleMode){
-                if (dx != 0) {
-                    this.speedX += (dx / (distance * distance)) / 5;
-                }
-                if (dy != 0) {  
-                    this.speedY += (dy / (distance * distance)) / 5;
                 }
             } else {
                 if (dx != 0) {
@@ -101,34 +81,25 @@ class Node {
                 this.elapsedSeconds = 99999;
             }
         }
-        /*
-         // Attraction and repulsion functions node-to-node
+        
+         // Attraction function node-to-node
          for (const otherNode of nodes) {
             if (otherNode !== this) {
                 const dx = otherNode.x - this.x;
                 const dy = otherNode.y - this.y;
                 const distance = Math.sqrt(dx * dx + dy * dy);
 
-                if (distance < 50 && distance > 20) {
-                    // Attraction
-                    const attractionForceX = dx / distance * 0.05;
-                    const attractionForceY = dy / distance * 0.05;
-
-                    this.x += attractionForceX;
-                    this.y += attractionForceY;
-                }
-
-                if (distance < 10) {
-                    // Repulsion
-                    const repulsionForceX = -dx / distance * 0.5;
-                    const repulsionForceY = -dy / distance * 0.5;
-
-                    this.x += repulsionForceX;
-                    this.y += repulsionForceY;
-                }
+                if(distance < 100 ) {
+                    if (abs(dx) > 1) {
+                        this.speedX += ( ( dx * this.mass * otherNode.mass) / (distance * distance)) / 200;
+                    }
+                    if (abs(dy) > 1) {  
+                        this.speedY += ( ( dy * this.mass * otherNode.mass) / (distance * distance)) / 200;
+                    }
+               }
             }
         }
-        */
+        
 
         this.x += this.speedX;
         this.y += this.speedY;
