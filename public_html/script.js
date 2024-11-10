@@ -16,13 +16,15 @@ window.addEventListener('resize', resizeCanvas);
 
 const nodes = [];
 
+blackHoleMode = false;
+
 class Node {
     constructor() {
         this.x = Math.random() * canvas.width;
         this.y = Math.random() * canvas.height;
         this.radius = 2;
-        this.speed = Math.random() / 8; // Random speed between 1 and 3
-        this.direction = Math.random() * 2 * Math.PI; // Random initial direction
+        this.speedX = (Math.random() * 2 - 1) / 8;  
+        this.speedY = (Math.random() * 2 - 1) / 8;
         this.clickedInProximity = false;
         this.clickTime = 0; // Timestamp when clicked
         this.accelerationX = 0;
@@ -41,33 +43,50 @@ class Node {
     update() {
         this.draw();
 
-        // Move in the initial direction
-        const velocityX = Math.cos(this.direction) * this.speed;
-        const velocityY = Math.sin(this.direction) * this.speed;
-
-        this.x += velocityX;
-        this.y += velocityY;
-
         // Attraction towards the mouse cursor
         const dx = mouseX - this.x;
         const dy = mouseY - this.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
 
-        if (distance < 50) {
-            const forceX = dx / distance;
-            const forceY = dy / distance;
-
-            this.x += forceX / 7;
-            this.y += forceY / 7;
-
-        }
-        else if (distance < 150 && distance > 50) {
-            const forceX = dx / distance;
-            const forceY = dy / distance;
-
-            this.x += forceX / 15;
-            this.y += forceY / 15;
-        }
+        // maybe scale this quadratically or real gravity
+       if(distance < 250 && distance > 25) {
+            //this.speedX += 1 / ( ( dx * dx ) );
+            //this.speexY += 1 / ( ( dy * dy ) );
+            if(!blackHoleMode){
+                if (dx != 0) {
+                    this.speedX += (dx / (distance * distance)) / 15;
+                }
+                if (dy != 0) {  
+                    this.speedY += (dy / (distance * distance)) / 15;
+                }
+            } else {
+                if (dx != 0) {
+                    this.speedX += (dx / (distance * distance)) / 2;
+                }
+                if (dy != 0) {  
+                    this.speedY += (dy / (distance * distance)) / 2;
+                }
+            }
+       }
+       if( distance <= 25)
+       { 
+            // dampen to converge to 0
+            if(!blackHoleMode){
+                if (dx != 0) {
+                    this.speedX += (dx / (distance * distance)) / 5;
+                }
+                if (dy != 0) {  
+                    this.speedY += (dy / (distance * distance)) / 5;
+                }
+            } else {
+                if (dx != 0) {
+                    this.speedX += (dx / (distance * distance)) / 2;
+                }
+                if (dy != 0) {  
+                    this.speedY += (dy / (distance * distance)) / 2;
+                }
+            }
+       }
 
          // Decay speed over a few seconds
          if (this.clickedInProximity) {
@@ -111,13 +130,16 @@ class Node {
         }
         */
 
+        this.x += this.speedX;
+        this.y += this.speedY;
+
         // Bounce off the walls
         if (this.x - this.radius < 0 || this.x + this.radius > canvas.width) {
-            this.direction = Math.PI - this.direction;
+            this.speedX = -1 * this.speedX;  
         }
 
         if (this.y - this.radius < 0 || this.y + this.radius > canvas.height) {
-            this.direction = -this.direction;
+            this.speedY = -1 * this.speedY;
         }
     }
 }
@@ -175,6 +197,9 @@ document.addEventListener('keydown', (event) => {
     }
     if (keysPressed['n'] && keysPressed['0']) {
         createNodes(10);
+    }
+    if (keysPressed['b']) {
+        blackHoleMode = !blackHoleMode;
     }
 });
 
