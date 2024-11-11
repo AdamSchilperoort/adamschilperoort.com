@@ -14,18 +14,22 @@ resizeCanvas();
 // Add an event listener for window resize
 window.addEventListener('resize', resizeCanvas);
 
-const nodes = [];
+let nodes = [];
 
-blackHoleMode = false;
+let blackHoleMode = false;
+let planetaryBodyMode = false;
 
 class Node {
     constructor() {
         this.x = Math.random() * canvas.width;
         this.y = Math.random() * canvas.height;
-        this.radius = 2;
-        this.speedX = (Math.random() * 2 - 1) / 8;  
-        this.speedY = (Math.random() * 2 - 1) / 8;
-        this.mass = (Math.random() + 1 ) * 10;
+        //this.radius = 2;
+        //this.speedX = (Math.random() * 2 - 1) / 30;  
+        //this.speedY = (Math.random() * 2 - 1) / 30;
+        this.speedX = 0;
+        this.speedY = 0;
+        this.mass = ((Math.random() + 1) * 1000);
+        this.radius = this.mass / 1000;
         this.clickedInProximity = false;
         this.clickTime = 0; // Timestamp when clicked
         this.accelerationX = 0;
@@ -81,26 +85,38 @@ class Node {
                 this.elapsedSeconds = 99999;
             }
         }
-        
-         // Attraction function node-to-node
-         for (const otherNode of nodes) {
-            if (otherNode !== this) {
-                const dx = otherNode.x - this.x;
-                const dy = otherNode.y - this.y;
-                const distance = Math.sqrt(dx * dx + dy * dy);
 
-                if(distance < 100 ) {
-                    if (abs(dx) > 1) {
-                        this.speedX += ( ( dx * this.mass * otherNode.mass) / (distance * distance)) / 200;
+         // Attraction function node-to-node
+        if(planetaryBodyMode){
+            for (const [i, otherNode] of nodes.entries()) {
+                if (otherNode != this) {
+                    const dx = otherNode.x - this.x;
+                    const dy = otherNode.y - this.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if(distance < 300 ) {
+                        if (distance < this.radius && this.mass > otherNode.mass){
+                            //combine nodes
+                            this.speedX = ( (this.mass * this.speedX ) + ( otherNode.mass * otherNode.speedX) ) / (this.mass + otherNode.mass);
+                            this.speedY = ( (this.mass * this.speedY ) + ( otherNode.mass * otherNode.speedY) ) / (this.mass + otherNode.mass);
+                            this.x += (otherNode.radius * Math.cos(Math.atan(dy/dx)));
+                            this.y += (otherNode.radius * Math.sin(Math.atan(dy/dx)));
+                            this.mass += otherNode.mass;
+                            this.radius = Math.sqrt( (this.radius * this.radius) + (otherNode.radius * otherNode.radius) );
+                            nodes.splice(i, 1);
+                        } else {
+                            if (Math.abs(dx) > 1) {
+                                this.speedX += ( ( dx * (otherNode.mass) / (this.mass)) / (distance * distance)) / 100;
+                            }
+                            if (Math.abs(dy) > 1) { 
+                                this.speedY += ( ( dy * (otherNode.mass) / (this.mass)) / (distance * distance)) / 100;
+                            }
+                        }
                     }
-                    if (abs(dy) > 1) {  
-                        this.speedY += ( ( dy * this.mass * otherNode.mass) / (distance * distance)) / 200;
-                    }
-               }
+                }
             }
         }
         
-
         this.x += this.speedX;
         this.y += this.speedY;
 
@@ -171,6 +187,9 @@ document.addEventListener('keydown', (event) => {
     }
     if (keysPressed['b']) {
         blackHoleMode = !blackHoleMode;
+    }
+    if (keysPressed['p']) {
+        planetaryBodyMode = !planetaryBodyMode;
     }
 });
 
