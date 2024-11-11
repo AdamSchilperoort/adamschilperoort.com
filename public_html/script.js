@@ -18,16 +18,15 @@ let nodes = [];
 
 let blackHoleMode = false;
 let planetaryBodyMode = false;
+const cursorMass = ((Math.random() + 1) * 1000);
 
 class Node {
     constructor() {
         this.x = Math.random() * canvas.width;
         this.y = Math.random() * canvas.height;
         //this.radius = 2;
-        //this.speedX = (Math.random() * 2 - 1) / 30;  
-        //this.speedY = (Math.random() * 2 - 1) / 30;
-        this.speedX = 0;
-        this.speedY = 0;
+        this.speedX = (Math.random() * 2 - 1) / 30;  
+        this.speedY = (Math.random() * 2 - 1) / 30;
         this.mass = ((Math.random() + 1) * 1000);
         this.radius = this.mass / 1000;
         this.clickedInProximity = false;
@@ -56,11 +55,11 @@ class Node {
         // maybe scale this quadratically or real gravity
        if(distance < 250 ) {
             if(!blackHoleMode){
-                if (dx != 0) {
-                    this.speedX += (dx / (distance * distance)) / 15;
+                if (Math.abs(dx) >= 1) {
+                    this.speedX += (dx * (cursorMass) / (this.mass) / (distance * distance)) / 20;
                 }
-                if (dy != 0) {  
-                    this.speedY += (dy / (distance * distance)) / 15;
+                if (Math.abs(dy) >= 1) {  
+                    this.speedY += (dy * (cursorMass) / (this.mass) / (distance * distance)) / 20;
                 }
             } else {
                 if (dx != 0) {
