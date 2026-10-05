@@ -5,7 +5,7 @@ const ns = 'http://www.w3.org/2000/svg';
 const svgNode = (tag, attrs = {}, text) => { const n = document.createElementNS(ns, tag); for (const [k,v] of Object.entries(attrs)) n.setAttribute(k, v); if (text !== undefined) n.textContent = text; return n; };
 const value = (n, digits = 1) => n === null || n === undefined ? '—' : Number(n).toLocaleString(undefined, {maximumFractionDigits:digits,minimumFractionDigits:digits});
 const validPath = path => typeof path === 'string' && /^data\/shots\/[a-f0-9]{32}-[a-f0-9]{16}\.json$/.test(path);
-let archive, selected, visible = 12, selectionVersion = 0, loadingMore = false;
+let archive, selected, visible = 12, selectionVersion = 0, loadingMore = false, calendarMonth;
 const dateText = (stamp, options = {}) => new Intl.DateTimeFormat(undefined, {timeZone:archive.timezone, month:'short',day:'numeric',year:'numeric', ...options}).format(new Date(stamp*1000));
 
 function metric(label, amount, unit, note) {
@@ -14,6 +14,7 @@ function metric(label, amount, unit, note) {
   return box;
 }
 function renderCalendar(month){
+  calendarMonth=month;
   const cal=archive.statistics.coffee_calendar;
   const [year,m]=month.split('-').map(Number);
   const name=new Intl.DateTimeFormat(undefined,{month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(Date.UTC(year,m-1,1)));
@@ -21,18 +22,21 @@ function renderCalendar(month){
   const offset=(new Date(Date.UTC(year,m-1,1)).getUTCDay()+6)%7;
   const counts=new Map(cal.days.map(d=>[d.date,d.count]));
   const grid=$('coffee-calendar');grid.replaceChildren();
-  for(const label of ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'])grid.append(node('span',label,'calendar-weekday'));
+  $('calendar-month-label').textContent=name;
+  const index=cal.months.findIndex(r=>r.month===month);
+  $('calendar-prev').disabled=index<=0;
+  $('calendar-next').disabled=index<0||index>=cal.months.length-1;
   for(let i=0;i<offset;i++){const blank=node('span',undefined,'calendar-pad');blank.setAttribute('aria-hidden','true');grid.append(blank);}
   for(let day=1;day<=days;day++){
     const date=`${month}-${String(day).padStart(2,'0')}`,count=counts.get(date)||0;
     const future=date>cal.as_of, before=date<cal.first_date;
-    const button=node('button',String(day),`calendar-day level-${Math.min(4,count)}${future?' future':''}${date===cal.as_of?' today':''}`);
+    const button=node('button',undefined,`calendar-day level-${Math.min(4,count)}${future?' future':''}${date===cal.as_of?' today':''}`);
     button.type='button';button.disabled=future;
     const detail=`${date}: ${count} ${count===1?'shot':'shots'}${future?' · upcoming':before?' · before recorded history':''}`;
-    button.title=detail;button.setAttribute('aria-label',detail);if(date===cal.as_of)button.setAttribute('aria-current','date');
-    button.addEventListener('click',()=>{$('calendar-detail').textContent=detail+' · 2:30 AM day boundary';});grid.append(button);
+    button.setAttribute('aria-label',detail);if(date===cal.as_of)button.setAttribute('aria-current','date');
+    const tooltip=node('span',detail,'day-tooltip');tooltip.setAttribute('aria-hidden','true');button.append(tooltip);grid.append(button);
   }
-  $('calendar-detail').textContent=`${name} · ${cal.months.find(r=>r.month===month)?.shots||0} archived shots`;
+
   const rec=cal.months.find(r=>r.month===month);
   $('records-title').textContent=`${name} records`;
   const host=$('month-records');host.replaceChildren();
@@ -41,24 +45,24 @@ function renderCalendar(month){
   record('Most shots in a day',String(rec.most_shots.count),rec.most_shots.dates.join(', '));
   for(const [key,label] of [['earliest','Earliest shot'],['latest','Latest shot']]){
     const row=rec[key];const time=new Intl.DateTimeFormat(undefined,{timeZone:archive.timezone,hour:'numeric',minute:'2-digit'}).format(new Date(row.timestamp*1000));
-    record(label,time,`${dateText(row.timestamp)} · coffee day ${row.coffee_date}`);
+    record(label,time,dateText(row.timestamp));
   }
   record('Most popular profile',rec.popular_profiles.names.join(' / '),`${rec.popular_profiles.count} shots${rec.popular_profiles.names.length>1?' each · tied':''}`);
 }
 function renderLedger(){
   const cal=archive.statistics.coffee_calendar;
-  if(!cal){$('output-note').textContent='Calendar statistics will appear after the next data publication.';return;}
+  if(!cal)return;
   $('output-grams').textContent=value(cal.output_grams,1)+' g';
-  $('output-note').textContent=`Final extraction weights · ${cal.output_measured_shots} eligible shots measured · ${cal.output_omitted_shots} omitted`;
+
   $('streak-count').textContent=cal.streak.days;
-  $('streak-note').textContent=cal.streak.through?`Through ${cal.streak.through} · 2:30 AM rollover`:'Your next shot starts a new streak';
-  const select=$('calendar-month');select.replaceChildren();
-  for(const record of [...cal.months].reverse()){
-    const option=node('option',record.month);option.value=record.month;select.append(option);
+  $('streak-note').textContent=cal.streak.through?`Through ${cal.streak.through}`:'Your next shot starts a new streak';
+  for(const [id,delta] of [['calendar-prev',-1],['calendar-next',1]]){
+    $(id).addEventListener('click',()=>{
+      const index=cal.months.findIndex(r=>r.month===calendarMonth),next=cal.months[index+delta];
+      if(next)renderCalendar(next.month);
+    });
   }
-  select.value=cal.current_month;
-  select.addEventListener('change',()=>renderCalendar(select.value));
-  renderCalendar(select.value);
+  renderCalendar(cal.current_month);
 }
 
 function renderStats(stats) {
