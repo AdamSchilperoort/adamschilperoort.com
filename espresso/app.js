@@ -5,7 +5,7 @@ const ns = 'http://www.w3.org/2000/svg';
 const svgNode = (tag, attrs = {}, text) => { const n = document.createElementNS(ns, tag); for (const [k,v] of Object.entries(attrs)) n.setAttribute(k, v); if (text !== undefined) n.textContent = text; return n; };
 const value = (n, digits = 1) => n === null || n === undefined ? '—' : Number(n).toLocaleString(undefined, {maximumFractionDigits:digits,minimumFractionDigits:digits});
 const validPath = path => typeof path === 'string' && /^data\/shots\/[a-f0-9]{32}-[a-f0-9]{16}\.json$/.test(path);
-let archive, selected, visible = 12, selectionVersion = 0;
+let archive, selected, visible = 12, selectionVersion = 0, loadingMore = false;
 const dateText = (stamp, options = {}) => new Intl.DateTimeFormat(undefined, {timeZone:archive.timezone, month:'short',day:'numeric',year:'numeric', ...options}).format(new Date(stamp*1000));
 
 function metric(label, amount, unit, note) {
@@ -13,14 +13,63 @@ function metric(label, amount, unit, note) {
   box.append(node('strong', value(amount)),node('span',unit,'unit'),node('small',note));
   return box;
 }
+function renderCalendar(month){
+  const cal=archive.statistics.coffee_calendar;
+  const [year,m]=month.split('-').map(Number);
+  const name=new Intl.DateTimeFormat(undefined,{month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(Date.UTC(year,m-1,1)));
+  const days=new Date(Date.UTC(year,m,0)).getUTCDate();
+  const offset=(new Date(Date.UTC(year,m-1,1)).getUTCDay()+6)%7;
+  const counts=new Map(cal.days.map(d=>[d.date,d.count]));
+  const grid=$('coffee-calendar');grid.replaceChildren();
+  for(const label of ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'])grid.append(node('span',label,'calendar-weekday'));
+  for(let i=0;i<offset;i++){const blank=node('span',undefined,'calendar-pad');blank.setAttribute('aria-hidden','true');grid.append(blank);}
+  for(let day=1;day<=days;day++){
+    const date=`${month}-${String(day).padStart(2,'0')}`,count=counts.get(date)||0;
+    const future=date>cal.as_of, before=date<cal.first_date;
+    const button=node('button',String(day),`calendar-day level-${Math.min(4,count)}${future?' future':''}${date===cal.as_of?' today':''}`);
+    button.type='button';button.disabled=future;
+    const detail=`${date}: ${count} ${count===1?'shot':'shots'}${future?' · upcoming':before?' · before recorded history':''}`;
+    button.title=detail;button.setAttribute('aria-label',detail);if(date===cal.as_of)button.setAttribute('aria-current','date');
+    button.addEventListener('click',()=>{$('calendar-detail').textContent=detail+' · 2:30 AM day boundary';});grid.append(button);
+  }
+  $('calendar-detail').textContent=`${name} · ${cal.months.find(r=>r.month===month)?.shots||0} archived shots`;
+  const rec=cal.months.find(r=>r.month===month);
+  $('records-title').textContent=`${name} records`;
+  const host=$('month-records');host.replaceChildren();
+  function record(label,main,note){const item=node('div',undefined,'record');item.append(node('span',label),node('b',main),node('small',note));host.append(item);}
+  if(!rec||!rec.shots){host.append(node('p','No shots recorded this month.','empty'));return;}
+  record('Most shots in a day',String(rec.most_shots.count),rec.most_shots.dates.join(', '));
+  for(const [key,label] of [['earliest','Earliest shot'],['latest','Latest shot']]){
+    const row=rec[key];const time=new Intl.DateTimeFormat(undefined,{timeZone:archive.timezone,hour:'numeric',minute:'2-digit'}).format(new Date(row.timestamp*1000));
+    record(label,time,`${dateText(row.timestamp)} · coffee day ${row.coffee_date}`);
+  }
+  record('Most popular profile',rec.popular_profiles.names.join(' / '),`${rec.popular_profiles.count} shots${rec.popular_profiles.names.length>1?' each · tied':''}`);
+}
+function renderLedger(){
+  const cal=archive.statistics.coffee_calendar;
+  if(!cal){$('output-note').textContent='Calendar statistics will appear after the next data publication.';return;}
+  $('output-grams').textContent=value(cal.output_grams,1)+' g';
+  $('output-note').textContent=`Final extraction weights · ${cal.output_measured_shots} eligible shots measured · ${cal.output_omitted_shots} omitted`;
+  $('streak-count').textContent=cal.streak.days;
+  $('streak-note').textContent=cal.streak.through?`Through ${cal.streak.through} · 2:30 AM rollover`:'Your next shot starts a new streak';
+  const select=$('calendar-month');select.replaceChildren();
+  for(const record of [...cal.months].reverse()){
+    const option=node('option',record.month);option.value=record.month;select.append(option);
+  }
+  select.value=cal.current_month;
+  select.addEventListener('change',()=>renderCalendar(select.value));
+  renderCalendar(select.value);
+}
+
 function renderStats(stats) {
+  $('quality-summary').textContent=`${stats.eligible_shots ?? stats.total_shots} eligible shots · ${stats.excluded_shots ?? 0} excluded from averages. All shots remain in the archive.`;
   $('total').textContent = stats.total_shots.toLocaleString();
   $('date-range').textContent = stats.first_date ? `${stats.first_date} → ${stats.as_of}` : 'Your first shot starts the story.';
   $('machine').textContent = archive.machine;
-  $('daily-average').textContent = value(stats.shots_per_day,2) + ' / day';
+
   $('footer-date').textContent = `${archive.timezone} · Statistics through ${stats.as_of}`;
   const metrics = $('metrics'); metrics.replaceChildren();
-  metrics.append(metric('Cups per calendar day',stats.shots_per_day,'cups',`${stats.calendar_days} days, including quiet days`));
+  metrics.append(metric('Eligible shots per calendar day',stats.shots_per_day,'cups',`${stats.calendar_days} days, including quiet days`));
   const fields = [
     ['temperature_c','Measured temperature','°C'],['duration_s','Brew time, incl. pre-infusion','s'],
     ['weight_g','Output weight','g'],['extraction_pressure_bar','Extraction pressure','bar'],
@@ -28,13 +77,7 @@ function renderStats(stats) {
     ['target_temperature_c','Profile target temperature','°C']
   ];
   for (const [key,label,unit] of fields) { const item=stats.averages[key]; metrics.append(metric(label,item.value,unit,item.n ? `${item.n} shots with this measurement` : 'Not available in these records')); }
-  const svg=svgNode('svg',{viewBox:'0 0 520 185',role:'img','aria-label':'Cumulative shots over time'});
-  const days=stats.daily, max=Math.max(1,stats.total_shots), left=30,right=510,top=12,bottom=158;
-  for(let i=0;i<=4;i++){const y=bottom-i*(bottom-top)/4;svg.append(svgNode('line',{x1:left,x2:right,y1:y,y2:y,stroke:'#303741'}),svgNode('text',{x:left-8,y:y+3,'text-anchor':'end'},Math.round(max*i/4)));}
-  const coords=days.map((d,i)=>[left+i*(right-left)/Math.max(1,days.length-1),bottom-d.total/max*(bottom-top)]);
-  if(coords.length){const points=coords.map(p=>p.join(',')).join(' '); svg.append(svgNode('polygon',{points:`${left},${bottom} ${points} ${coords.at(-1)[0]},${bottom}`,fill:'#182e42'}),svgNode('polyline',{points,fill:'none',stroke:'#83c8ff','stroke-width':2})); for(const [i,d] of days.entries()){ const circle=svgNode('circle',{cx:coords[i][0],cy:coords[i][1],r:3,fill:'#83c8ff'});circle.append(svgNode('title',{},`${d.date}: ${d.count} shots · ${d.total} total`));svg.append(circle);}}
-  svg.append(svgNode('text',{x:left,y:180},stats.first_date || 'No shots yet'),svgNode('text',{x:right,y:180,'text-anchor':'end'},stats.as_of));
-  $('cumulative').replaceChildren(svg);
+  renderLedger();
   const maxWeek=Math.max(1,...stats.weekday.map(d=>d.average || 0)); $('weekdays').replaceChildren();
   for(const d of stats.weekday){ const col=node('div',undefined,'weekday'),bar=node('div',undefined,'bar'+(d.average===Math.max(...stats.weekday.map(x=>x.average||0))?' peak':''));bar.style.height=(100*(d.average||0)/maxWeek)+'%';bar.append(node('span',d.average===null?'—':value(d.average,1)));col.append(bar,node('label',d.name));col.title=`${d.shots} shots across ${d.days} ${d.name} occurrences`;$('weekdays').append(col);}
   $('profiles').replaceChildren(); const maxProfile=Math.max(1,...stats.profiles.map(p=>p.count));
@@ -46,9 +89,10 @@ function renderList(){
   for(const shot of shots.slice(0,visible)){
     const b=node('button',undefined,'shot-row'+(selected===shot.asset?' active':'')); b.type='button';b.setAttribute('aria-pressed',String(selected===shot.asset));
     b.append(node('span',dateText(shot.timestamp,{hour:'numeric',minute:'2-digit'})),node('strong',shot.profile),node('small',`${value(shot.metrics.duration_s)} s · ${value(shot.metrics.weight_g)} g`));
+    if(shot.quality && !shot.quality.eligible)b.append(node('small','Excluded from averages','quality-badge'));
     b.addEventListener('click',()=>selectShot(shot));$('shot-list').append(b);
   }
-  $('more').hidden=shots.length<=visible;
+  $('more').hidden=!loadingMore && shots.length<=visible;
 }
 // Dependency-free SVG: one time domain, independent physical-unit scales.
 function drawOverlay(shot){
@@ -139,6 +183,7 @@ function drawOverlay(shot){
 
 async function selectShot(summary){
   const version=++selectionVersion;selected=summary.asset;history.replaceState(null,'','#'+selected);renderList();
+  $('shot-quality').textContent=summary.quality && !summary.quality.eligible ? 'Excluded from averages: '+summary.quality.reasons.join('; ') : 'Included in averages';
   $('shot-name').textContent=summary.profile;$('shot-date').textContent=dateText(summary.timestamp,{hour:'numeric',minute:'2-digit'})+' · '+archive.timezone;
   $('json-link').hidden=true;$('curves').replaceChildren(node('p','Loading curves…','empty'));
   const m=summary.metrics;$('shot-metrics').replaceChildren();
@@ -150,12 +195,20 @@ async function selectShot(summary){
     $('json-link').href=summary.json;$('json-link').hidden=false;
   }catch(error){if(version===selectionVersion)$('curves').replaceChildren(node('p',error.message+' — reload after deployment completes.','error'));}
 }
+async function loadMoreShots(){
+  if(loadingMore)return;
+  loadingMore=true;const button=$('more');button.disabled=true;button.textContent='Loading shots…';button.setAttribute('aria-busy','true');
+  $('profile-filter').disabled=true;
+  // Yield for a visible busy state; list data is already local, not a network request.
+  try{await new Promise(resolve=>setTimeout(resolve,700));visible+=12;renderList();}
+  finally{loadingMore=false;button.disabled=false;button.textContent='Load more shots';button.setAttribute('aria-busy','false');$('profile-filter').disabled=false;renderList();}
+}
 async function start(){
   try{
     const response=await fetch('data/index.json',{cache:'no-store'});if(!response.ok)throw Error('Shot data is not published yet');
     archive=await response.json();if(archive.schema_version!==1)throw Error('Unsupported archive format');
     renderStats(archive.statistics);$('notice').textContent=archive.machine.startsWith('DEMO')?'DEMO — these are synthetic shots, shown only to preview the dashboard.':'';
-    $('more').addEventListener('click',()=>{visible+=12;renderList();});$('profile-filter').addEventListener('change',()=>{visible=12;renderList();});
+    $('more').addEventListener('click',loadMoreShots);$('profile-filter').addEventListener('change',()=>{visible=12;renderList();});
     if(archive.shots.length){const initial=archive.shots.find(s=>s.asset===location.hash.slice(1))||archive.shots[0];await selectShot(initial);}else renderList();
   }catch(error){$('notice').textContent=error.message+'. The local collector publishes this file through a merged PR.';$('notice').classList.add('error');}
 }
