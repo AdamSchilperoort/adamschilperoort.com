@@ -7,20 +7,20 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="description" content="Adam's espresso journal: Meticulous extraction curves, profiles and brewing statistics.">
   <title>Espresso journal · Adam Schilperoort</title>
-  <link rel="stylesheet" href="style.css?v=1.4.0">
-  <script src="app.js?v=1.4.0" defer></script>
+  <link rel="stylesheet" href="style.css?v=1.4.1">
+  <script src="app.js?v=1.4.1" defer></script>
 </head>
 <body>
 <header class="top"><a href="/">Adam Schilperoort <span>↗</span></a><span class="edition">THE ESPRESSO JOURNAL</span><a href="#shots">Shot archive ↓</a></header>
 <main>
   <section class="hero">
     <div><div class="eyebrow"><span class="bean"></span> AT HOME, IN TUCSON</div><h1>One shot<br>at a time.</h1><p>A running record of the daily ritual.<br>Every curve, every profile, every cup.</p><div class="machine" id="machine">Meticulous</div></div>
-    <div class="total-card"><span class="eyebrow">THE COFFEE LEDGER</span><div class="ledger-totals"><div><strong id="total">—</strong><span>shots in the archive</span></div><div><strong id="output-grams">—</strong><span>grams of recorded espresso output</span></div></div><p id="output-note"></p><p id="date-range"></p><div class="streak"><strong id="streak-count">—</strong><span>days in a row</span><small id="streak-note"></small></div><div class="rule"></div><h2 id="records-title">This month's records</h2><div id="month-records" class="month-records"></div></div>
+    <div class="total-card"><span class="eyebrow">THE COFFEE LEDGER</span><div class="ledger-totals"><div><strong id="total">—</strong><span>total espresso shots</span></div><div><strong id="output-grams">—</strong><span>grams of recorded espresso output</span></div></div><p id="date-range"></p><div class="streak"><strong id="streak-count">—</strong><span>days in a row</span><small id="streak-note"></small></div><div class="rule"></div><h2 id="records-title">This month's records</h2><div id="month-records" class="month-records"></div></div>
   </section>
   <p id="notice" role="status" class="notice">Loading shot data…</p>
   <section aria-labelledby="averages-title"><div class="section-title"><h2 id="averages-title">The daily numbers</h2><span>ELIGIBLE SHOTS</span></div><p id="quality-summary" class="caption" role="status"></p><div id="metrics" class="metrics"></div></section>
   <section class="charts" aria-label="Brewing habits">
-    <article class="panel calendar-panel"><div class="panel-heading"><div><span class="eyebrow">A LITTLE EVERY DAY</span><h2>Coffee calendar</h2></div><label class="filter">Month <select id="calendar-month" aria-label="Coffee calendar month"></select></label></div><div id="coffee-calendar" class="coffee-calendar"></div><div class="heat-legend"><span>Shots</span><span class="heat level-0">0</span><span class="heat level-1">1</span><span class="heat level-2">2</span><span class="heat level-3">3</span><span class="heat level-4">4+</span></div><p id="calendar-detail" class="caption" role="status">Select a day for its shot count.</p><p class="caption">All archived shots · Coffee days run 2:30 AM–2:29 AM, Phoenix time.</p></article>
+    <article class="panel calendar-panel"><div class="panel-heading"><h2>Coffee activity</h2><div class="calendar-nav"><button id="calendar-prev" type="button" aria-label="Previous month">‹</button><span id="calendar-month-label" aria-live="polite"></span><button id="calendar-next" type="button" aria-label="Next month">›</button></div></div><div id="coffee-calendar" class="coffee-calendar" role="group" aria-label="Daily espresso shots"></div></article>
     <article class="panel"><div class="panel-heading"><div><span class="eyebrow">THE WEEKLY RHYTHM</span><h2>By day of the week</h2></div></div><div id="weekdays" class="weekdays"></div><p class="caption">Average shots per occurrence of each weekday, including zero-shot days.</p></article>
   </section>
   <section class="profiles panel" aria-labelledby="profiles-title"><div><span class="eyebrow">THE RECIPES ON REPEAT</span><h2 id="profiles-title">Profile breakdown</h2><p class="caption">Running totals, grouped by profile name.</p></div><div id="profiles" class="profile-bars"></div></section>
