@@ -30,9 +30,9 @@ function renderStats(stats) {
   for (const [key,label,unit] of fields) { const item=stats.averages[key]; metrics.append(metric(label,item.value,unit,item.n ? `${item.n} shots with this measurement` : 'Not available in these records')); }
   const svg=svgNode('svg',{viewBox:'0 0 520 185',role:'img','aria-label':'Cumulative shots over time'});
   const days=stats.daily, max=Math.max(1,stats.total_shots), left=30,right=510,top=12,bottom=158;
-  for(let i=0;i<=4;i++){const y=bottom-i*(bottom-top)/4;svg.append(svgNode('line',{x1:left,x2:right,y1:y,y2:y,stroke:'#e4e5da'}),svgNode('text',{x:left-8,y:y+3,'text-anchor':'end'},Math.round(max*i/4)));}
+  for(let i=0;i<=4;i++){const y=bottom-i*(bottom-top)/4;svg.append(svgNode('line',{x1:left,x2:right,y1:y,y2:y,stroke:'#303741'}),svgNode('text',{x:left-8,y:y+3,'text-anchor':'end'},Math.round(max*i/4)));}
   const coords=days.map((d,i)=>[left+i*(right-left)/Math.max(1,days.length-1),bottom-d.total/max*(bottom-top)]);
-  if(coords.length){const points=coords.map(p=>p.join(',')).join(' '); svg.append(svgNode('polygon',{points:`${left},${bottom} ${points} ${coords.at(-1)[0]},${bottom}`,fill:'#dce6d5'}),svgNode('polyline',{points,fill:'none',stroke:'#315e49','stroke-width':2})); for(const [i,d] of days.entries()){ const circle=svgNode('circle',{cx:coords[i][0],cy:coords[i][1],r:3,fill:'#315e49'});circle.append(svgNode('title',{},`${d.date}: ${d.count} shots · ${d.total} total`));svg.append(circle);}}
+  if(coords.length){const points=coords.map(p=>p.join(',')).join(' '); svg.append(svgNode('polygon',{points:`${left},${bottom} ${points} ${coords.at(-1)[0]},${bottom}`,fill:'#182e42'}),svgNode('polyline',{points,fill:'none',stroke:'#83c8ff','stroke-width':2})); for(const [i,d] of days.entries()){ const circle=svgNode('circle',{cx:coords[i][0],cy:coords[i][1],r:3,fill:'#83c8ff'});circle.append(svgNode('title',{},`${d.date}: ${d.count} shots · ${d.total} total`));svg.append(circle);}}
   svg.append(svgNode('text',{x:left,y:180},stats.first_date || 'No shots yet'),svgNode('text',{x:right,y:180,'text-anchor':'end'},stats.as_of));
   $('cumulative').replaceChildren(svg);
   const maxWeek=Math.max(1,...stats.weekday.map(d=>d.average || 0)); $('weekdays').replaceChildren();
@@ -54,10 +54,10 @@ function renderList(){
 function drawOverlay(shot){
   const host=node('div',undefined,'overlay'), controls=node('div',undefined,'plot-controls');
   const channels=[
-    {key:'pressure',label:'Pressure',unit:'bar',color:'#28644f',side:'left',slot:0},
-    {key:'flow',label:'Flow',unit:'mL/s',color:'#ad5929',side:'left',slot:1},
-    {key:'weight',label:'Weight',unit:'g',color:'#426caa',side:'right',slot:0},
-    {key:'temperature',label:'Temperature',unit:'°C',color:'#a23f67',side:'right',slot:1}
+    {key:'pressure',label:'Pressure',unit:'bar',color:'#79deb3',side:'left',slot:0},
+    {key:'flow',label:'Flow',unit:'mL/s',color:'#ffbc75',side:'left',slot:1},
+    {key:'weight',label:'Weight',unit:'g',color:'#83c8ff',side:'right',slot:0},
+    {key:'temperature',label:'Temperature',unit:'°C',color:'#ee9ecb',side:'right',slot:1}
   ];
   const points=shot.samples.filter(p=>Number.isFinite(p.time_s));
   const full=[0,Math.max(1,shot.metrics.duration_s,...points.map(p=>p.time_s))];
@@ -90,7 +90,7 @@ function drawOverlay(shot){
     cursor.setAttribute('x1',x(p.time_s));cursor.setAttribute('x2',x(p.time_s));
     cursor.setAttribute('visibility',p.time_s>=domain[0]&&p.time_s<=domain[1]?'visible':'hidden');
     dots.replaceChildren();
-    for(const c of channels)if(c.shown&&Number.isFinite(p[c.key])&&p.time_s>=domain[0]&&p.time_s<=domain[1])dots.append(svgNode('circle',{cx:x(p.time_s),cy:y(p[c.key],c),r:4,fill:c.color,stroke:'#fff','stroke-width':1}));
+    for(const c of channels)if(c.shown&&Number.isFinite(p[c.key])&&p.time_s>=domain[0]&&p.time_s<=domain[1])dots.append(svgNode('circle',{cx:x(p.time_s),cy:y(p[c.key],c),r:4,fill:c.color,stroke:'#14171c','stroke-width':1}));
     $('readout').textContent=`${value(p.time_s,2)} s · ${p.stage || 'Unknown stage'} · `+channels.filter(c=>c.shown).map(c=>`${c.label}: ${value(p[c.key],2)} ${c.unit}`).join(' · ');
   }
   function render(){
@@ -99,10 +99,10 @@ function drawOverlay(shot){
     scroller.replaceChildren(svg);
     const defs=svgNode('defs'),clip=svgNode('clipPath',{id:'shot-plot-clip'});clip.append(svgNode('rect',{x:left,y:top,width:right-left,height:bottom-top}));defs.append(clip);svg.append(defs);
     const curves=svgNode('g',{'clip-path':'url(#shot-plot-clip)'});
-    for(const p of points)if(p.phase==='preinfusion')curves.append(svgNode('rect',{x:x(p.time_s),y:top,width:Math.max(0,x(p.time_s+p.interval_s)-x(p.time_s)),height:bottom-top,fill:'#f2e2c1'}));
+    for(const p of points)if(p.phase==='preinfusion')curves.append(svgNode('rect',{x:x(p.time_s),y:top,width:Math.max(0,x(p.time_s+p.interval_s)-x(p.time_s)),height:bottom-top,fill:'#41331e'}));
     for(let i=0;i<=4;i++){
       const yy=bottom-i*(bottom-top)/4,t=domain[0]+i*(domain[1]-domain[0])/4;
-      svg.append(svgNode('line',{x1:left,x2:right,y1:yy,y2:yy,stroke:'#e4e5da'}),svgNode('text',{x:x(t),y:bottom+20,'text-anchor':'middle'},value(t,1)));
+      svg.append(svgNode('line',{x1:left,x2:right,y1:yy,y2:yy,stroke:'#303741'}),svgNode('text',{x:x(t),y:bottom+20,'text-anchor':'middle'},value(t,1)));
     }
     svg.append(curves,svgNode('text',{x:(left+right)/2,y:height-5,'text-anchor':'middle'},'Brew time · seconds'));
     for(const c of channels){
@@ -122,8 +122,8 @@ function drawOverlay(shot){
       }
       curves.append(svgNode('path',{d,stroke:c.color,'stroke-width':2,fill:'none','stroke-linejoin':'round','vector-effect':'non-scaling-stroke'}));
     }
-    cursor=svgNode('line',{y1:top,y2:bottom,stroke:'#555','stroke-dasharray':'4 3',visibility:'hidden'});
-    selection=svgNode('rect',{y:top,height:bottom-top,fill:'#426caa',opacity:.15,width:0});dots=svgNode('g');svg.append(cursor,dots,selection);
+    cursor=svgNode('line',{y1:top,y2:bottom,stroke:'#c6d0dd','stroke-dasharray':'4 3',visibility:'hidden'});
+    selection=svgNode('rect',{y:top,height:bottom-top,fill:'#83c8ff',opacity:.15,width:0});dots=svgNode('g');svg.append(cursor,dots,selection);
     svg.addEventListener('pointerdown',e=>{if(e.button!==0)return;drag=pointerTime(e);svg.setPointerCapture(e.pointerId);inspect(nearest(drag));});
     svg.addEventListener('pointermove',e=>{const t=pointerTime(e);inspect(nearest(t));if(drag!==null){selection.setAttribute('x',x(Math.min(t,drag)));selection.setAttribute('width',Math.abs(x(t)-x(drag)));}});
     svg.addEventListener('pointerup',e=>{if(drag===null)return;const t=pointerTime(e),start=drag;drag=null;if(Math.abs(x(t)-x(start))>8){domain=[Math.min(start,t),Math.max(start,t)];render();}else selection.setAttribute('width',0);});
